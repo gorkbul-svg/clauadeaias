@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIST Araştırma Agent — Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:       #080c18;
+    --surface:  #0e1525;
+    --border:   #1a2540;
+    --accent:   #1d62f0;
+    --accent2:  #0ea5e9;
+    --green:    #22c55e;
+    --red:      #ef4444;
+    --amber:    #f59e0b;
+    --text:     #dde3f0;
+    --muted:    #4a5878;
+    --mono:     'IBM Plex Mono', monospace;
+    --sans:     'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 99;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .logo-text h1 { font-family: var(--mono); font-size: 14px; letter-spacing: .06em; }
+  .logo-text p  { font-size: 10px; color: var(--muted); letter-spacing: .12em; margin-top:2px; }
+
+  .demo-badge {
+    background: rgba(29,98,240,.15);
+    border: 1px solid rgba(29,98,240,.35);
+    color: var(--accent2);
+    padding: 4px 12px; border-radius: 20px;
+    font-size: 11px; font-family: var(--mono);
+    letter-spacing: .08em;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: flex; flex: 1; overflow: hidden;
+    height: calc(100vh - 65px);
+  }
+
+  /* ── Sol: Hisse Listesi ── */
+  .sidebar {
+    width: 190px;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    overflow-y: auto;
+    padding: 16px 10px;
+    display: flex; flex-direction: column; gap: 6px;
+    flex-shrink: 0;
+  }
+  .sidebar-title {
+    font-size: 9px; font-family: var(--mono);
+    color: var(--muted); letter-spacing: .14em;
+    padding: 0 6px; margin-bottom: 4px;
+  }
+  .ticker-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer; text-align: left;
+    transition: all .15s; color: var(--text);
+    width: 100%;
+  }
+  .ticker-btn:hover { background: #131d33; border-color: var(--accent); }
+  .ticker-btn.active { background: rgba(29,98,240,.12); border-color: var(--accent); }
+  .ticker-name   { font-family: var(--mono); font-weight: 700; font-size: 12px; }
+  .ticker-price  { font-size: 13px; margin-top: 2px; }
+  .ticker-change { font-size: 11px; margin-top: 1px; }
+  .up   { color: var(--green); }
+  .down { color: var(--red); }
+
+  /* ── Orta: Chat + Analiz ── */
+  .main {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* Sekmeler */
+  .tabs {
+    display: flex; border-bottom: 1px solid var(--border);
+    background: var(--surface); flex-shrink: 0;
+  }
+  .tab {
+    padding: 12px 22px; font-size: 12px; font-family: var(--mono);
+    cursor: pointer; border: none; background: transparent;
+    color: var(--muted); letter-spacing: .05em;
+    border-bottom: 2px solid transparent; transition: all .15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+
+  /* Chat */
+  .chat-area {
+    flex: 1; overflow-y: auto; padding: 24px 28px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .msg { display: flex; }
+  .msg.user  { justify-content: flex-end; }
+  .msg.agent { justify-content: flex-start; }
+  .bubble {
+    max-width: 72%; padding: 13px 17px;
+    line-height: 1.7; font-size: 13.5px;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .msg.user .bubble {
+    background: var(--accent);
+    border-radius: 16px 16px 4px 16px;
+  }
+  .msg.agent .bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px 16px 16px 4px;
+  }
+  .agent-label {
+    font-size: 9px; font-family: var(--mono); color: var(--accent2);
+    letter-spacing: .1em; font-weight: 700; margin-bottom: 5px;
+  }
+
+  /* Analiz paneli */
+  .analysis-panel {
+    flex: 1; overflow-y: auto; padding: 20px 24px;
+    display: none; flex-direction: column; gap: 14px;
+  }
+  .analysis-panel.visible { display: flex; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px;
+  }
+  .card-title {
+    font-size: 10px; font-family: var(--mono);
+    color: var(--muted); letter-spacing: .12em; margin-bottom: 12px;
+  }
+  .metric-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .metric {
+    background: rgba(255,255,255,.03);
+    border-radius: 8px; padding: 10px 12px;
+  }
+  .metric-label { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+  .metric-value { font-family: var(--mono); font-size: 16px; font-weight: 700; }
+  .metric-sub   { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* Sentiment bar */
+  .sentiment-bar {
+    height: 6px; border-radius: 3px;
+    background: linear-gradient(to right, var(--red), var(--amber), var(--green));
+    position: relative; margin: 8px 0;
+  }
+  .sentiment-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: white; border: 2px solid var(--bg);
+    position: absolute; top: -4px;
+    transform: translateX(-50%);
+    box-shadow: 0 0 8px rgba(255,255,255,.4);
+  }
+
+  /* RSI göstergesi */
+  .rsi-bar {
+    height: 8px; border-radius: 4px; background: var(--border);
+    overflow: hidden; margin-top: 6px;
+  }
+  .rsi-fill {
+    height: 100%; border-radius: 4px;
+    transition: width .5s ease;
+  }
+
+  /* Hızlı sorular */
+  .quick-questions {
+    padding: 8px 28px; border-top: 1px solid var(--border);
+    display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0;
+  }
+  .qq-btn {
+    background: transparent;
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 4px 12px; font-size: 11px; font-family: var(--mono);
+    color: var(--muted); cursor: pointer; transition: all .15s;
+    white-space: nowrap;
+  }
+  .qq-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  /* Input */
+  .input-area {
+    padding: 14px 28px 20px;
+    background: var(--surface); border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .input-row {
+    display: flex; gap: 8px;
+    background: #111827;
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 4px 4px 4px 16px;
+  }
+  .input-row:focus-within { border-color: var(--accent); }
+  input[type=text] {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--text); font-family: var(--mono); font-size: 13px;
+    padding: 6px 0;
+  }
+  input[type=text]::placeholder { color: var(--muted); }
+  .send-btn {
+    background: var(--accent); border: none; border-radius: 8px;
+    width: 38px; height: 38px; cursor: pointer; font-size: 17px;
+    color: white; transition: background .15s; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .send-btn:hover { background: #1558e0; }
+  .send-btn:disabled { background: var(--border); cursor: default; }
+
+  .disclaimer {
+    font-size: 10px; color: var(--muted); text-align: center; margin-top: 7px;
+  }
+
+  /* ── Sağ: Profil ── */
+  .profile-panel {
+    width: 210px; border-left: 1px solid var(--border);
+    background: var(--surface);
+    padding: 16px 14px; display: flex; flex-direction: column; gap: 12px;
+    flex-shrink: 0; overflow-y: auto;
+  }
+  .panel-title {
+    font-size: 9px; font-family: var(--mono);
+    color: var(--muted); letter-spacing: .14em;
+  }
+  .profile-card {
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px;
+  }
+  .profile-name  { font-weight: 600; font-size: 13px; }
+  .profile-risk  {
+    font-size: 10px; font-family: var(--mono);
+    letter-spacing: .05em; text-transform: uppercase; margin-top: 3px;
+  }
+  .progress-bar {
+    height: 4px; background: var(--border); border-radius: 2px;
+    overflow: hidden; margin-top: 6px;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 2px; transition: width .5s ease;
+  }
+  .score-row {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: var(--muted); margin-bottom: 3px;
+  }
+
+  .profile-select {
+    background: #111827; border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px; padding: 6px 8px;
+    font-size: 11px; width: 100%; cursor: pointer; font-family: var(--sans);
+  }
+
+  /* Loading dots */
+  .dots { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); animation: blink 1.2s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: .2s; }
+  .dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📊</div>
+    <div class="logo-text">
+      <h1>BIST ARAŞTIRMA AGENT</h1>
+      <p>CLAUDE TOOL USE API</p>
+    </div>
+  </div>
+  <span class="demo-badge">⚡ DEMO MOD</span>
+</header>
+
+<div class="layout">
+
+  <!-- Sol: Ticker listesi -->
+  <aside class="sidebar">
+    <div class="sidebar-title">BIST HİSSELERİ</div>
+    <div id="tickerList"></div>
+  </aside>
+
+  <!-- Orta: Ana içerik -->
+  <main class="main">
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('chat')" id="tab-chat">💬 CHAT</button>
+      <button class="tab" onclick="switchTab('analysis')" id="tab-analysis">📈 ANALİZ</button>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-area" id="chatArea">
+      <div class="msg agent">
+        <div class="bubble">
+          <div class="agent-label">BIST AGENT</div>
+          Merhaba! Ben BIST Araştırma Agent'ınım. 🚀
+
+Claude Tool Use API ile çalışıyorum — sorularınıza yanıt verirken gerçek zamanlı olarak Yahoo Finance verisini çekiyor, teknik ve temel analiz yapıyor, profilinize göre değerlendiriyorum.
+
+<strong>Deneyin:</strong>
+• "THYAO analiz et"
+• "AKBNK ve GARAN karşılaştır"
+• "Portföyümü BIMAS, EREGL, THYAO ile değerlendir"
+
+⚠️ Demo modda simüle edilmiş veri kullanılmaktadır.
+        </div>
+      </div>
+    </div>
+
+    <!-- Analiz Paneli -->
+    <div class="analysis-panel" id="analysisPanel"></div>
+
+    <!-- Hızlı sorular -->
+    <div class="quick-questions" id="quickQ"></div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <div class="input-row">
+        <input type="text" id="userInput"
+          placeholder="Hisse kodu veya soru... (örn: THYAO analiz et)"
+          onkeydown="if(event.key==='Enter') sendMessage()">
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">→</button>
+      </div>
+      <p class="disclaimer">⚠️ Bu platform yatırım tavsiyesi sunmaz. Tüm kararlar yatırımcıya aittir.</p>
+    </div>
+  </main>
+
+  <!-- Sağ: Profil -->
+  <aside class="profile-panel">
+    <div class="panel-title">AKTİF YATIRIMCI</div>
+    <select class="profile-select" id="profileSelect" onchange="switchProfile(this.value)">
+      <option value="muhafazakar">Ahmet Y. — Muhafazakâr</option>
+      <option value="büyüme" selected>Elif K. — Büyüme</option>
+      <option value="agresif">Mert D. — Agresif</option>
+    </select>
+    <div class="profile-card" id="profileCard"></div>
+    <p style="font-size:11px;color:var(--muted);line-height:1.5;" id="profileDesc"></p>
+  </aside>
+
+</div>
+
+<script>
+// ── Veri ────────────────────────────────────────────────
+
+const TICKERS = {
+  THYAO: { sirket:"Türk Hava Yolları", fiyat:287.50, degisim:+2.3,
+    sektor:"Havacılık",
+    finansal:{ FK:7.2, PDDD:1.8, ROE:28.4, karMarji:12.1, karbuyume:45.2 },
+    teknik:{ RSI:58.3, MACD:"Al Sinyali", MA20:275.4, MA50:261.8, trend:"Yükseliş" },
+    haberler:[
+      {b:"THY yolcu sayısında rekor: +18% YoY büyüme",s:"pozitif"},
+      {b:"Yeni Avrupa rotaları açıklandı",s:"pozitif"},
+      {b:"Jet yakıt maliyetleri hafif geriledi",s:"nötr"},
+    ],
+    sentiment: 0.72
+  },
+  AKBNK: { sirket:"Akbank", fiyat:54.30, degisim:-0.8,
+    sektor:"Bankacılık",
+    finansal:{ FK:4.1, PDDD:0.9, ROE:34.2, karMarji:28.5, karbuyume:12.8 },
+    teknik:{ RSI:45.1, MACD:"Nötr", MA20:55.8, MA50:51.2, trend:"Yatay" },
+    haberler:[
+      {b:"Merkez Bankası faiz kararı bekleniyor",s:"nötr"},
+      {b:"Akbank kredi büyümesi beklentileri karşıladı",s:"pozitif"},
+      {b:"Bankacılık NPL oranları izleniyor",s:"negatif"},
+    ],
+    sentiment: 0.45
+  },
+  GARAN: { sirket:"Garanti BBVA", fiyat:119.60, degisim:+1.1,
+    sektor:"Bankacılık",
+    finansal:{ FK:4.8, PDDD:1.1, ROE:31.5, karMarji:25.3, karbuyume:8.5 },
+    teknik:{ RSI:52.4, MACD:"Al Sinyali", MA20:116.2, MA50:109.8, trend:"Yükseliş" },
+    haberler:[
+      {b:"Garanti Q3 net kârı beklentileri aştı",s:"pozitif"},
+      {b:"Dijital bankacılık kullanıcı tabanı genişliyor",s:"pozitif"},
+    ],
+    sentiment: 0.61
+  },
+  EREGL: { sirket:"Ereğli Demir Çelik", fiyat:41.24, degisim:-1.4,
+    sektor:"Demir-Çelik",
+    finansal:{ FK:6.1, PDDD:1.3, ROE:22.8, karMarji:18.7, karbuyume:-5.2 },
+    teknik:{ RSI:38.7, MACD:"Sat Sinyali", MA20:43.1, MA50:46.8, trend:"Düşüş" },
+    haberler:[
+      {b:"Çelik fiyatlarında global baskı sürüyor",s:"negatif"},
+      {b:"Ereğli yüksek temettü verimi koruyor",s:"pozitif"},
+    ],
+    sentiment: 0.38
+  },
+  BIMAS: { sirket:"BİM Mağazalar", fiyat:503.50, degisim:+0.6,
+    sektor:"Perakende",
+    finansal:{ FK:18.4, PDDD:5.2, ROE:45.1, karMarji:4.2, karbuyume:28.3 },
+    teknik:{ RSI:61.2, MACD:"Al Sinyali", MA20:492.3, MA50:475.1, trend:"Yükseliş" },
+    haberler:[
+      {b:"BİM mağaza açılış hızı yavaşlamıyor",s:"pozitif"},
+      {b:"Tüketici enflasyonu perakendecileri destekliyor",s:"pozitif"},
+    ],
+    sentiment: 0.68
+  },
+  KCHOL: { sirket:"Koç Holding", fiyat:182.20, degisim:+0.3,
+    sektor:"Holding",
+    finansal:{ FK:9.8, PDDD:1.6, ROE:19.4, karMarji:8.1, karbuyume:15.7 },
+    teknik:{ RSI:54.8, MACD:"Nötr", MA20:179.4, MA50:171.2, trend:"Yükseliş" },
+    haberler:[
+      {b:"Koç Holding çeşitlendirilmiş yapısıyla öne çıkıyor",s:"pozitif"},
+    ],
+    sentiment: 0.55
+  },
+};
+
+const PROFILLER = {
+  muhafazakar: {
+    ad:"Ahmet Yılmaz", skor:42, makskayip:10,
+    renk:"#22c55e",
+    aciklama:"Düşük risk, sermaye koruma öncelikli. Temettü ve mavi çip hisseler tercih edilir."
+  },
+  büyüme: {
+    ad:"Elif Kaya", skor:72, makskayip:40,
+    renk:"#f59e0b",
+    aciklama:"Büyüme odaklı. Yüksek büyüme potansiyeli olan şirketleri tercih eder."
+  },
+  agresif: {
+    ad:"Mert Demir", skor:91, makskayip:60,
+    renk:"#ef4444",
+    aciklama:"Yüksek risk — yüksek getiri. Spekülatif pozisyonlara açık."
+  }
+};
+
+const HIZLI_SORULAR = [
+  "THYAO analiz et","AKBNK ve GARAN karşılaştır",
+  "Bankacılık sektörü değerlendir","BIMAS, EREGL, THYAO portföy analizi",
+  "En düşük F/K hangi hisse?",
+];
+
+// ── State ────────────────────────────────────────────────
+let aktifProfil = "büyüme";
+let aktifTicker = null;
+let isLoading = false;
+
+// ── Init ─────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  renderTickers();
+  renderQuickQ();
+  renderProfile();
+});
+
+function renderTickers(){
+  const list = document.getElementById("tickerList");
+  list.innerHTML = Object.entries(TICKERS).map(([k,v]) => `
+    <button class="ticker-btn" id="tb-${k}" onclick="tickerClick('${k}')">
+      <div class="ticker-name">${k}</div>
+      <div class="ticker-price">${v.fiyat.toFixed(2)} ₺</div>
+      <div class="ticker-change ${v.degisim>=0?'up':'down'}">
+        ${v.degisim>=0?'▲':'▼'} ${Math.abs(v.degisim).toFixed(2)}%
+      </div>
+    </button>`).join("");
+}
+
+function renderQuickQ(){
+  document.getElementById("quickQ").innerHTML =
+    HIZLI_SORULAR.map(s =>
+      `<button class="qq-btn" onclick="sendMessage('${s}')">${s}</button>`
+    ).join("");
+}
+
+function renderProfile(){
+  const p = PROFILLER[aktifProfil];
+  document.getElementById("profileCard").innerHTML = `
+    <div class="profile-name">${p.ad}</div>
+    <div class="profile-risk" style="color:${p.renk}">${aktifProfil}</div>
+    <div class="score-row" style="margin-top:10px">
+      <span>Risk Skoru</span><span>${p.skor}/100</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" style="width:${p.skor}%;background:${p.renk}"></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px">
+      Max kayıp: %${p.makskayip}
+    </div>`;
+  document.getElementById("profileDesc").textContent = p.aciklama;
+}
+
+function switchProfile(val){
+  aktifProfil = val;
+  renderProfile();
+}
+
+function switchTab(tab){
+  document.getElementById("tab-chat").classList.toggle("active", tab==="chat");
+  document.getElementById("tab-analysis").classList.toggle("active", tab==="analysis");
+  document.getElementById("chatArea").style.display = tab==="chat" ? "flex" : "none";
+  document.getElementById("analysisPanel").classList.toggle("visible", tab==="analysis");
+}
+
+function tickerClick(ticker){
+  document.querySelectorAll(".ticker-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("tb-"+ticker)?.classList.add("active");
+  aktifTicker = ticker;
+  sendMessage(`${ticker} hissesini analiz et`);
+}
+
+// ── Chat ─────────────────────────────────────────────────
+
+function addMsg(rol, html){
+  const area = document.getElementById("chatArea");
+  const div = document.createElement("div");
+  div.className = `msg ${rol}`;
+  div.innerHTML = rol==="agent"
+    ? `<div class="bubble"><div class="agent-label">BIST AGENT</div>${html}</div>`
+    : `<div class="bubble">${html}</div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+  return div;
+}
+
+function showLoading(){
+  return addMsg("agent", '<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>');
+}
+
+async function sendMessage(text){
+  if(isLoading) return;
+  const input = document.getElementById("userInput");
+  const soru = text || input.value.trim();
+  if(!soru) return;
+
+  input.value = "";
+  addMsg("user", soru);
+  switchTab("chat");
+
+  isLoading = true;
+  document.getElementById("sendBtn").disabled = true;
+
+  const loadingEl = showLoading();
+
+  // Simüle edilmiş işleme süresi
+  await sleep(400);
+
+  const yanit = await generateResponse(soru);
+
+  loadingEl.remove();
+  addMsg("agent", yanit);
+
+  isLoading = false;
+  document.getElementById("sendBtn").disabled = false;
+  input.focus();
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// ── Yanıt Üreteci ────────────────────────────────────────
+
+async function generateResponse(soru){
+  const s = soru.toLowerCase();
+
+  // Ticker tespiti
+  const bulunan = Object.keys(TICKERS).filter(t => s.includes(t.toLowerCase()));
+
+  // Portföy sorusu
+  if(bulunan.length > 1 || s.includes("portföy") || s.includes("portfolio")){
+    await sleep(800);
+    return portfoyYaniti(bulunan.length>1 ? bulunan : Object.keys(TICKERS).slice(0,3));
+  }
+
+  // Tekil hisse analizi
+  if(bulunan.length === 1){
+    await sleep(600);
+    return tekHisseYaniti(bulunan[0]);
+  }
+
+  // Sektör sorusu
+  if(s.includes("bankacılık") || s.includes("banka")){
+    await sleep(500);
+    return sektorYaniti("Bankacılık", ["AKBNK","GARAN"]);
+  }
+  if(s.includes("havacılık") || s.includes("hava")){
+    await sleep(500);
+    return sektorYaniti("Havacılık", ["THYAO"]);
+  }
+
+  // Karşılaştırma
+  if(s.includes("karşılaştır") || s.includes("vs") || s.includes("mi daha")){
+    const tkrs = bulunan.length>=2 ? bulunan.slice(0,2) : ["THYAO","AKBNK"];
+    await sleep(700);
+    return karsilastirmaYaniti(tkrs);
+  }
+
+  // F/K sorusu
+  if(s.includes("f/k") || s.includes("ucuz") || s.includes("düşük")){
+    await sleep(400);
+    const sorted = Object.entries(TICKERS).sort((a,b)=>a[1].finansal.FK-b[1].finansal.FK);
+    const top = sorted.slice(0,3);
+    return `📊 <strong>En Düşük F/K Oranına Sahip Hisseler</strong>\n\n`+
+      top.map(([k,v],i)=>`${i+1}. <strong>${k}</strong> — F/K: ${v.finansal.FK}x\n   ${v.sirket}, ROE: %${v.finansal.ROE}`).join("\n\n")+
+      `\n\n<em>Düşük F/K tek başına yeterli değildir. Büyüme potansiyeli, borç seviyesi ve sektör dinamikleri de değerlendirilmelidir.</em>\n\n⚠️ Bu analiz yatırım tavsiyesi değildir.`;
+  }
+
+  // Genel yanıt
+  return `Anlıyorum! BIST'teki hisseler hakkında şu konularda yardımcı olabilirim:\n\n• <strong>Tekil hisse analizi</strong> → "THYAO analiz et"\n• <strong>Karşılaştırma</strong> → "AKBNK ve GARAN karşılaştır"\n• <strong>Portföy analizi</strong> → "BIMAS, EREGL, THYAO portföy"\n• <strong>Sektör görünümü</strong> → "bankacılık sektörü"\n• <strong>Metrik bazlı tarama</strong> → "düşük F/K hisse"\n\nHangi hisseyi araştırmak istersiniz?`;
+}
+
+// ── Yanıt Şablonları ─────────────────────────────────────
+
+function tekHisseYaniti(ticker){
+  const h = TICKERS[ticker];
+  const p = PROFILLER[aktifProfil];
+
+  // Profil uygunluk skoru (basit hesap)
+  let uygunluk = 70;
+  if(aktifProfil === "muhafazakar" && h.finansal.FK > 15) uygunluk -= 20;
+  if(aktifProfil === "büyüme" && h.finansal.karbuyume > 20) uygunluk += 15;
+  if(aktifProfil === "agresif") uygunluk += 10;
+  uygunluk = Math.min(95, Math.max(30, uygunluk));
+  const uygunlukLabel = uygunluk>=80?"Çok Uygun":uygunluk>=60?"Uygun":uygunluk>=40?"Kısmen Uygun":"Dikkatli Ol";
+
+  const sentimentEmoji = h.sentiment>0.6?"🟢":h.sentiment>0.4?"🟡":"🔴";
+  const trendEmoji = h.teknik.trend==="Yükseliş"?"📈":h.teknik.trend==="Düşüş"?"📉":"➡️";
+
+  // Analiz panelini güncelle
+  renderAnalysisPanel(ticker);
+
+  return `<strong>📊 ${ticker} — ${h.sirket}</strong>
+
+<strong>💰 Fiyat:</strong> ${h.fiyat.toFixed(2)} ₺ <span class="${h.degisim>=0?'up':'down'}">${h.degisim>=0?'▲':'▼'}${Math.abs(h.degisim)}%</span>
+
+<strong>📐 Temel Analiz</strong>
+• F/K Oranı: <strong>${h.finansal.FK}x</strong> ${h.finansal.FK<10?"(cazip)":"(yüksek)"}
+• PD/DD: ${h.finansal.PDDD}x
+• ROE: %${h.finansal.ROE} (özsermaye getirisi)
+• Net Kar Büyümesi: <strong>${h.finansal.karbuyume>0?"+":""}${h.finansal.karbuyume}%</strong>
+
+<strong>${trendEmoji} Teknik Görünüm</strong>
+• RSI(14): ${h.teknik.RSI} ${h.teknik.RSI>70?"⚠️ Aşırı alım":h.teknik.RSI<30?"💡 Aşırı satım":"(normal)"}
+• MACD: ${h.teknik.MACD}
+• Trend: <strong>${h.teknik.trend}</strong>
+
+<strong>${sentimentEmoji} Haber Duyarlılığı</strong>
+${h.haberler.map(n=>`• ${n.b}`).join("\n")}
+
+<strong>👤 Profil Uygunluğu (${p.ad})</strong>
+Uygunluk Skoru: <strong>${uygunluk}/100 — ${uygunlukLabel}</strong>
+
+⚠️ Bu analiz yatırım tavsiyesi değildir.`;
+}
+
+function portfoyYaniti(tickers){
+  const gecerli = tickers.filter(t => TICKERS[t]);
+  if(gecerli.length === 0) return "Portföy analizi için geçerli hisse kodu girin.";
+
+  const sektorler = [...new Set(gecerli.map(t => TICKERS[t].sektor))];
+  const cesitlendirme = Math.min(100, sektorler.length * 28);
+  const ortFK = (gecerli.reduce((a,t)=>a+TICKERS[t].finansal.FK,0)/gecerli.length).toFixed(1);
+  const ortROE = (gecerli.reduce((a,t)=>a+TICKERS[t].finansal.ROE,0)/gecerli.length).toFixed(1);
+  const agirlik = (100/gecerli.length).toFixed(1);
+
+  return `<strong>📁 Portföy Analizi — ${gecerli.length} Hisse</strong>
+
+<strong>Hisseler:</strong>
+${gecerli.map(t=>`• <strong>${t}</strong> — ${TICKERS[t].sirket} | F/K:${TICKERS[t].finansal.FK} | ROE:%${TICKERS[t].finansal.ROE}`).join("\n")}
+
+<strong>📊 Portföy Metrikleri</strong>
+• Sektör Sayısı: ${sektorler.length} (${sektorler.join(", ")})
+• Çeşitlendirme Skoru: <strong>${cesitlendirme}/100</strong> ${cesitlendirme>=75?"✅":"⚠️"}
+• Ortalama F/K: ${ortFK}x
+• Ortalama ROE: %${ortROE}
+
+<strong>⚖️ Önerilen Ağırlıklar (Eşit Dağılım)</strong>
+${gecerli.map(t=>`• ${t}: %${agirlik}`).join("\n")}
+
+<strong>⚠️ Uyarılar</strong>
+${sektorler.length < 2 ? "• Tek sektörde yoğunlaşma riski var!\n" : ""}${gecerli.length < 4 ? "• 4'ten az hisse — daha fazla çeşitlendirme önerilir\n" : ""}• Profil uyumunu kontrol etmek için bireysel analizleri inceleyin
+
+⚠️ Bu analiz yatırım tavsiyesi değildir.`;
+}
+
+function karsilastirmaYaniti(tickers){
+  const [a, b] = tickers;
+  const ha = TICKERS[a], hb = TICKERS[b];
+  if(!ha || !hb) return `${a} veya ${b} bulunamadı.`;
+
+  const kazanan = ha.finansal.FK < hb.finansal.FK ? a : b;
+
+  return `<strong>⚖️ ${a} vs ${b} — Karşılaştırma</strong>
+
+<strong>Temel Metrikler</strong>
+┌──────────┬──────────┬──────────┐
+│ Metrik   │ ${a.padEnd(8)}│ ${b.padEnd(8)}│
+├──────────┼──────────┼──────────┤
+│ F/K      │ ${String(ha.finansal.FK).padEnd(8)}│ ${String(hb.finansal.FK).padEnd(8)}│
+│ PD/DD    │ ${String(ha.finansal.PDDD).padEnd(8)}│ ${String(hb.finansal.PDDD).padEnd(8)}│
+│ ROE %    │ ${String(ha.finansal.ROE).padEnd(8)}│ ${String(hb.finansal.ROE).padEnd(8)}│
+│ RSI      │ ${String(ha.teknik.RSI).padEnd(8)}│ ${String(hb.teknik.RSI).padEnd(8)}│
+│ Trend    │ ${ha.teknik.trend.slice(0,8).padEnd(8)}│ ${hb.teknik.trend.slice(0,8).padEnd(8)}│
+└──────────┴──────────┴──────────┘
+
+<strong>💡 Değerlendirme</strong>
+• <strong>${kazanan}</strong> daha düşük F/K oranıyla değerleme açısından öne çıkıyor
+• ROE karşılaştırmasında <strong>${ha.finansal.ROE > hb.finansal.ROE ? a : b}</strong> daha güçlü özsermaye getirisi sunuyor
+• Teknik trend: ${a} → <strong>${ha.teknik.trend}</strong> | ${b} → <strong>${hb.teknik.trend}</strong>
+
+Her iki hisseyi profil uygunluğu için ayrı ayrı analiz etmemi ister misiniz?
+
+⚠️ Bu analiz yatırım tavsiyesi değildir.`;
+}
+
+function sektorYaniti(sektor, tickers){
+  const hisseler = tickers.filter(t=>TICKERS[t]);
+  return `<strong>🏭 ${sektor} Sektörü Genel Görünümü</strong>
+
+<strong>Sektördeki Hisseler</strong>
+${hisseler.map(t=>{
+  const h=TICKERS[t];
+  return `<strong>${t}</strong> — ${h.sirket}
+  Fiyat: ${h.fiyat.toFixed(2)} ₺ | F/K: ${h.finansal.FK}x | ROE: %${h.finansal.ROE}
+  Trend: ${h.teknik.trend} | RSI: ${h.teknik.RSI}`;
+}).join("\n\n")}
+
+Belirli bir hisseyi derinlemesine analiz etmemi ister misiniz?
+
+⚠️ Bu analiz yatırım tavsiyesi değildir.`;
+}
+
+// ── Analiz Paneli ────────────────────────────────────────
+
+function renderAnalysisPanel(ticker){
+  const h = TICKERS[ticker];
+  const panel = document.getElementById("analysisPanel");
+
+  const rsiColor = h.teknik.RSI > 70 ? "#ef4444" : h.teknik.RSI < 30 ? "#22c55e" : "#3b82f6";
+  const sentColor = h.sentiment > 0.6 ? "#22c55e" : h.sentiment < 0.4 ? "#ef4444" : "#f59e0b";
+
+  panel.innerHTML = `
+    <div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:.1em">
+      ${ticker} — ${h.sirket} | ${h.sektor}
+    </div>
+
+    <!-- Fiyat -->
+    <div class="card">
+      <div class="card-title">FIYAT BİLGİSİ</div>
+      <div class="metric-grid">
+        <div class="metric">
+          <div class="metric-label">Güncel Fiyat</div>
+          <div class="metric-value">${h.fiyat.toFixed(2)} ₺</div>
+          <div class="metric-sub ${h.degisim>=0?'up':'down'}">${h.degisim>=0?'▲':'▼'} ${Math.abs(h.degisim)}%</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Trend</div>
+          <div class="metric-value" style="font-size:14px">${h.teknik.trend}</div>
+          <div class="metric-sub">MA50: ${h.teknik.MA50} ₺</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Temel -->
+    <div class="card">
+      <div class="card-title">TEMEL ANALİZ</div>
+      <div class="metric-grid">
+        <div class="metric">
+          <div class="metric-label">F/K Oranı</div>
+          <div class="metric-value">${h.finansal.FK}x</div>
+          <div class="metric-sub">${h.finansal.FK<10?"Cazip":h.finansal.FK<20?"Makul":"Yüksek"}</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">ROE</div>
+          <div class="metric-value" style="color:#22c55e">%${h.finansal.ROE}</div>
+          <div class="metric-sub">Özsermaye getirisi</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Kar Büyümesi</div>
+          <div class="metric-value ${h.finansal.karbuyume>=0?'up':'down'}">
+            ${h.finansal.karbuyume>=0?"+":""}${h.finansal.karbuyume}%
+          </div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">PD/DD</div>
+          <div class="metric-value">${h.finansal.PDDD}x</div>
+          <div class="metric-sub">Piyasa/Defter</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Teknik -->
+    <div class="card">
+      <div class="card-title">TEKNİK GÖSTERGELER</div>
+      <div style="margin-bottom:10px">
+        <div class="score-row">
+          <span>RSI (14)</span>
+          <span style="color:${rsiColor}">${h.teknik.RSI}</span>
+        </div>
+        <div class="rsi-bar">
+          <div class="rsi-fill" style="width:${h.teknik.RSI}%;background:${rsiColor}"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px">
+          <span>Aşırı Satım</span><span>Nötr</span><span>Aşırı Alım</span>
+        </div>
+      </div>
+      <div class="metric-grid">
+        <div class="metric">
+          <div class="metric-label">MACD</div>
+          <div class="metric-value" style="font-size:12px">${h.teknik.MACD}</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">MA20</div>
+          <div class="metric-value" style="font-size:14px">${h.teknik.MA20} ₺</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sentiment -->
+    <div class="card">
+      <div class="card-title">HABER DUYARLILIĞI</div>
+      <div class="sentiment-bar">
+        <div class="sentiment-dot" style="left:${h.sentiment*100}%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)">
+        <span>Negatif</span><span>Nötr</span><span>Pozitif</span>
+      </div>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:5px">
+        ${h.haberler.map(n=>`
+          <div style="font-size:11px;padding:5px 8px;background:rgba(255,255,255,.03);border-radius:6px;line-height:1.4">
+            <span style="color:${n.s==='pozitif'?'#22c55e':n.s==='negatif'?'#ef4444':'#f59e0b'};margin-right:5px">●</span>${n.b}
+          </div>`).join("")}
+      </div>
+    </div>`;
+
+  // Analiz sekmesine geç
+  switchTab("analysis");
+}
+</script>
+</body>
+</html>

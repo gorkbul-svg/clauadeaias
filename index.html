@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Claude Tool Use API ile güçlendirilmiş BIST hisse araştırma agent'ı">
+<title>BIST Araştırma Agent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+  :root {
+    --bg:      #080c18;
+    --surface: #0e1525;
+    --border:  #1a2540;
+    --accent:  #1d62f0;
+    --accent2: #0ea5e9;
+    --green:   #22c55e;
+    --text:    #dde3f0;
+    --muted:   #4a5878;
+    --mono:    'IBM Plex Mono', monospace;
+    --sans:    'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 99;
+    background: rgba(8,12,24,.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    letter-spacing: .06em; color: var(--text); text-decoration: none;
+  }
+  .nav-logo-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none; font-size: 13px;
+    transition: color .15s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    background: var(--accent); color: white !important;
+    padding: 7px 18px; border-radius: 8px; font-weight: 500;
+    transition: background .15s !important;
+  }
+  .nav-cta:hover { background: #1558e0 !important; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 100px 24px 60px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 20%, rgba(29,98,240,.15) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 80% 80%, rgba(14,165,233,.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(29,98,240,.12);
+    border: 1px solid rgba(29,98,240,.3);
+    color: var(--accent2); padding: 5px 14px; border-radius: 20px;
+    font-size: 11px; font-family: var(--mono); letter-spacing: .1em;
+    margin-bottom: 28px;
+  }
+  .hero-badge-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  h1 {
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 600; line-height: 1.15;
+    letter-spacing: -.02em; margin-bottom: 20px;
+  }
+  h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-desc {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    color: #8a9bbf; max-width: 560px; margin-bottom: 40px;
+  }
+  .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .btn-primary {
+    background: var(--accent); color: white;
+    padding: 13px 28px; border-radius: 10px;
+    font-weight: 600; font-size: 14px; text-decoration: none;
+    transition: all .2s;
+    box-shadow: 0 0 30px rgba(29,98,240,.3);
+  }
+  .btn-primary:hover { background: #1558e0; transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border);
+    padding: 13px 28px; border-radius: 10px;
+    font-weight: 500; font-size: 14px; text-decoration: none;
+    transition: all .2s;
+  }
+  .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* Ticker bandı */
+  .ticker-band {
+    width: 100%; overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 10px 0;
+    margin-top: 60px;
+  }
+  .ticker-scroll {
+    display: flex; gap: 40px;
+    animation: scroll 25s linear infinite;
+    width: max-content;
+  }
+  @keyframes scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .ticker-item {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12px; white-space: nowrap;
+  }
+  .ticker-sym { font-weight: 700; }
+  .ticker-prc { color: var(--muted); }
+  .ticker-chg.up   { color: var(--green); }
+  .ticker-chg.down { color: #ef4444; }
+
+  /* ── ÖZELLİKLER ── */
+  section { padding: 90px 48px; max-width: 1100px; margin: 0 auto; }
+
+  .section-label {
+    font-family: var(--mono); font-size: 10px; color: var(--accent2);
+    letter-spacing: .18em; text-transform: uppercase; margin-bottom: 12px;
+  }
+  h2 {
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    font-weight: 600; letter-spacing: -.02em; margin-bottom: 16px;
+  }
+  .section-sub { color: #8a9bbf; font-size: 1.05rem; max-width: 520px; margin-bottom: 52px; }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .feature-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px;
+    transition: border-color .2s, transform .2s;
+  }
+  .feature-card:hover { border-color: rgba(29,98,240,.5); transform: translateY(-3px); }
+  .feature-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: rgba(29,98,240,.12);
+    border: 1px solid rgba(29,98,240,.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; margin-bottom: 16px;
+  }
+  .feature-title { font-weight: 600; margin-bottom: 8px; font-size: 15px; }
+  .feature-desc  { color: #8a9bbf; font-size: 13.5px; line-height: 1.6; }
+
+  /* ── MİMARİ ── */
+  .arch-section {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .arch-section > div { max-width: 1100px; margin: 0 auto; padding: 90px 48px; }
+  .arch-flow {
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap; margin-top: 40px;
+  }
+  .arch-box {
+    background: #0a1020; border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 20px;
+    font-family: var(--mono); font-size: 12px;
+    text-align: center; min-width: 130px;
+  }
+  .arch-box-title { color: var(--accent2); font-weight: 700; margin-bottom: 4px; }
+  .arch-box-sub   { color: var(--muted); font-size: 10px; }
+  .arch-arrow { color: var(--border); font-size: 22px; }
+
+  /* ── KURULUM ── */
+  .steps { display: flex; flex-direction: column; gap: 20px; margin-top: 40px; }
+  .step {
+    display: flex; gap: 20px; align-items: flex-start;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 22px;
+  }
+  .step-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(29,98,240,.15); border: 1px solid rgba(29,98,240,.3);
+    color: var(--accent2); font-family: var(--mono); font-weight: 700;
+    font-size: 13px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .step-title { font-weight: 600; margin-bottom: 6px; }
+  .step-desc  { color: #8a9bbf; font-size: 13px; margin-bottom: 10px; }
+  pre {
+    background: #060a14; border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px;
+    font-family: var(--mono); font-size: 12px;
+    color: #a8c4e8; overflow-x: auto; line-height: 1.6;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+    font-size: 12px; color: var(--muted);
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    nav { padding: 12px 20px; }
+    .nav-links { display: none; }
+    section { padding: 60px 20px; }
+    footer { padding: 24px 20px; flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-icon">📊</div>
+    BIST AGENT
+  </a>
+  <div class="nav-links">
+    <a href="#ozellikler">Özellikler</a>
+    <a href="#mimari">Mimari</a>
+    <a href="#kurulum">Kurulum</a>
+    <a href="demo.html" class="nav-cta">Demo Dene →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    CLAUDE TOOL USE API · YAHOO FINANCE · FASTAPI
+  </div>
+  <h1>BIST Hisseleri için<br><span>Akıllı Araştırma Agent'ı</span></h1>
+  <p class="hero-desc">
+    Claude'un Tool Use API'si ile güçlendirilmiş, bireysel yatırımcılara yönelik
+    gerçek zamanlı BIST hisse araştırma platformu.
+  </p>
+  <div class="hero-btns">
+    <a href="demo.html" class="btn-primary">⚡ Demo Dene</a>
+    <a href="https://github.com/gorkbul-svg/clauadeaias" class="btn-secondary" id="githubLink">GitHub →</a>
+  </div>
+
+  <!-- Ticker bandı -->
+  <div class="ticker-band">
+    <div class="ticker-scroll" id="tickerScroll"></div>
+  </div>
+</div>
+
+<!-- ÖZELLİKLER -->
+<section id="ozellikler">
+  <div class="section-label">Özellikler</div>
+  <h2>Tam Kapsamlı Araştırma</h2>
+  <p class="section-sub">
+    Her analizde 5 farklı boyut — tek bir konuşmada tümü birleşir.
+  </p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">💰</div>
+      <div class="feature-title">Gerçek Zamanlı Fiyat</div>
+      <div class="feature-desc">Yahoo Finance üzerinden anlık BIST fiyatları, hacim ve 52 haftalık aralık bilgisi.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📐</div>
+      <div class="feature-title">Temel Analiz</div>
+      <div class="feature-desc">F/K, PD/DD, ROE, net kar marjı, borç/özsermaye ve büyüme metrikleri.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <div class="feature-title">Teknik Analiz</div>
+      <div class="feature-desc">RSI, MACD, MA20/50/200 ve Bollinger Bantları otomatik hesaplanır.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📰</div>
+      <div class="feature-title">Haber Sentiment</div>
+      <div class="feature-desc">Son haberlerin pozitif/negatif/nötr duyarlılık analizi.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏭</div>
+      <div class="feature-title">Sektör Karşılaştırması</div>
+      <div class="feature-desc">Rakip şirketlerle yan yana değerlendirme ve sektör ortalamaları.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👤</div>
+      <div class="feature-title">Risk Profili</div>
+      <div class="feature-desc">Muhafazakâr'dan agresife 4 profil tipi — her analiz kişiselleştirilir.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📁</div>
+      <div class="feature-title">Portföy Analizi</div>
+      <div class="feature-desc">Çoklu hisse çeşitlendirme skoru, risk dağılımı ve ağırlık önerileri.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <div class="feature-title">Çok Turlu Konuşma</div>
+      <div class="feature-desc">Oturum hafızası — önceki sorularla bağlantılı takip soruları sorabilirsiniz.</div>
+    </div>
+  </div>
+</section>
+
+<!-- MİMARİ -->
+<div class="arch-section" id="mimari">
+  <div>
+    <div class="section-label">Mimari</div>
+    <h2>Nasıl Çalışır?</h2>
+    <p class="section-sub">
+      Claude, hedefe ulaşmak için hangi araçları kullanacağına kendi karar verir.
+    </p>
+    <div class="arch-flow">
+      <div class="arch-box">
+        <div class="arch-box-title">Kullanıcı</div>
+        <div class="arch-box-sub">Next.js UI</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div class="arch-box-title">FastAPI</div>
+        <div class="arch-box-sub">REST Backend</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box" style="border-color:rgba(29,98,240,.4)">
+        <div class="arch-box-title">Claude</div>
+        <div class="arch-box-sub">Tool Use API</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div class="arch-box-title">Tools</div>
+        <div class="arch-box-sub">5 fonksiyon</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div class="arch-box-title">Yahoo Finance</div>
+        <div class="arch-box-sub">Gerçek BIST verisi</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KURULUM -->
+<section id="kurulum">
+  <div class="section-label">Kurulum</div>
+  <h2>5 Dakikada Başla</h2>
+  <p class="section-sub">Python ve Node.js kurulu olması yeterli.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div>
+        <div class="step-title">Repoyu klonla</div>
+        <div class="step-desc">GitHub'dan projeyi indir.</div>
+        <pre>git clone https://github.com/gorkbul-svg/clauadeaias.git
+cd REPO</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <div class="step-title">Python bağımlılıklarını kur</div>
+        <div class="step-desc">Sanal ortam oluşturup gereksinimleri yükle.</div>
+        <pre>python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div>
+        <div class="step-title">API anahtarını ayarla</div>
+        <div class="step-desc">.env.example'ı kopyalayıp anahtarını gir.</div>
+        <pre>cp .env.example .env
+# .env dosyasını aç, ANTHROPIC_API_KEY'i doldur</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div>
+        <div class="step-title">Backend ve frontend'i başlat</div>
+        <div class="step-desc">İki ayrı terminalde çalıştır.</div>
+        <pre># Terminal 1 — Backend
+uvicorn api:app --reload --port 8000
+
+# Terminal 2 — Frontend
+cd frontend && npm install && npm run dev</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span>BIST Araştırma Agent · Claude Tool Use API ile güçlendirilmiştir</span>
+  <span>⚠️ Bu platform yatırım tavsiyesi sunmaz.</span>
+  <div style="display:flex;gap:20px">
+    <a href="demo.html">Demo</a>
+    <a href="https://github.com/gorkbul-svg/clauadeaias" id="footerGithub">GitHub</a>
+    <a href="https://docs.anthropic.com">Anthropic Docs</a>
+  </div>
+</footer>
+
+<script>
+// Ticker bandı verisi
+const TICKERS = [
+  {s:"THYAO", p:"287.50", c:"+2.3%", up:true},
+  {s:"AKBNK", p:"54.30",  c:"-0.8%", up:false},
+  {s:"GARAN", p:"119.60", c:"+1.1%", up:true},
+  {s:"EREGL", p:"41.24",  c:"-1.4%", up:false},
+  {s:"BIMAS", p:"503.50", c:"+0.6%", up:true},
+  {s:"KCHOL", p:"182.20", c:"+0.3%", up:true},
+  {s:"TUPRS", p:"176.40", c:"-0.5%", up:false},
+  {s:"SISE",  p:"54.80",  c:"+1.8%", up:true},
+  {s:"MGROS", p:"88.15",  c:"+0.9%", up:true},
+  {s:"PGSUS", p:"342.50", c:"-1.2%", up:false},
+];
+
+// Bandı çift kopyayla sonsuz scroll
+const band = document.getElementById("tickerScroll");
+const html = [...TICKERS, ...TICKERS].map(t => `
+  <div class="ticker-item">
+    <span class="ticker-sym">${t.s}</span>
+    <span class="ticker-prc">${t.p} ₺</span>
+    <span class="ticker-chg ${t.up?'up':'down'}">${t.c}</span>
+  </div>`).join("");
+band.innerHTML = html;
+
+// GitHub linkini repo URL'iyle güncelle (config)
+// Production'da bu değeri kendi repo URL'inle değiştir:
+const GITHUB_URL = "https://github.com/gorkbul-svg/clauadeaias";
+document.getElementById("githubLink").href = GITHUB_URL;
+document.getElementById("footerGithub").href = GITHUB_URL;
+</script>
+</body>
+</html>
