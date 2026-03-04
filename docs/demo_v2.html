@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIST Araştırma Agent</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0a0e1a;
+  color: #e0e6f0;
+  font-family: system-ui, -apple-system, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background: #0d1220;
+  border-bottom: 1px solid #1e2d4a;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #1d62f0, #0ea5e9);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.title h1 { font-size: 15px; font-weight: 700; letter-spacing: .04em; }
+.title p  { font-size: 10px; color: #4a5878; margin-top: 2px; }
+
+.status {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(239,68,68,.15);
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,.3);
+}
+.status.online {
+  background: rgba(34,197,94,.15);
+  color: #22c55e;
+  border-color: rgba(34,197,94,.3);
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.msg { display: flex; }
+.msg.user  { justify-content: flex-end; }
+.msg.agent { justify-content: flex-start; }
+
+.bubble {
+  max-width: 75%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.msg.user  .bubble { background: #1d62f0; border-radius: 12px 12px 3px 12px; }
+.msg.agent .bubble {
+  background: #0d1220;
+  border: 1px solid #1e2d4a;
+  border-radius: 12px 12px 12px 3px;
+}
+
+.agent-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #0ea5e9;
+  letter-spacing: .1em;
+  margin-bottom: 5px;
+}
+
+.dots { display: flex; gap: 4px; align-items: center; padding: 2px 0; }
+.dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #1d62f0;
+  animation: blink 1.2s infinite;
+}
+.dot:nth-child(2) { animation-delay: .2s; }
+.dot:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+
+.quick {
+  padding: 8px 20px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-top: 1px solid #1e2d4a;
+}
+
+.q-btn {
+  background: transparent;
+  border: 1px solid #1e2d4a;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #6b82a8;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.q-btn:hover { color: #e0e6f0; border-color: #1d62f0; }
+
+.input-area {
+  padding: 12px 20px 20px;
+  background: #0d1220;
+  border-top: 1px solid #1e2d4a;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  background: #111827;
+  border: 1px solid #1e2d4a;
+  border-radius: 10px;
+  padding: 4px 4px 4px 14px;
+}
+.input-row:focus-within { border-color: #1d62f0; }
+
+input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #e0e6f0;
+  font-size: 14px;
+  padding: 6px 0;
+  font-family: inherit;
+}
+input::placeholder { color: #4a5878; }
+
+button.send {
+  background: #1d62f0;
+  border: none;
+  border-radius: 7px;
+  width: 36px; height: 36px;
+  cursor: pointer;
+  color: white;
+  font-size: 16px;
+  flex-shrink: 0;
+  transition: background .15s;
+}
+button.send:hover { background: #1558e0; }
+button.send:disabled { background: #1e2d4a; cursor: default; }
+
+.disclaimer {
+  font-size: 10px;
+  color: #2d3a52;
+  text-align: center;
+  margin-top: 8px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📊</div>
+  <div class="title">
+    <h1>BIST ARAŞTIRMA AGENT</h1>
+    <p>CLAUDE TOOL USE API · YAHOO FINANCE</p>
+  </div>
+  <div class="status" id="status">⬤ Bağlanıyor...</div>
+</header>
+
+<div class="messages" id="messages">
+  <div class="msg agent">
+    <div class="bubble">
+      <div class="agent-label">BIST AGENT</div>
+      Merhaba! 👋 BIST hisse araştırma platformuna hoş geldiniz.
+
+Gerçek zamanlı Yahoo Finance verisiyle analiz yapıyorum. Deneyin:
+• THYAO analiz et
+• AKBNK ve GARAN karşılaştır
+• MAVI hissesi nasıl?
+• BIMAS, EREGL, THYAO portföy analizi
+    </div>
+  </div>
+</div>
+
+<div class="quick">
+  <button class="q-btn" onclick="gonder('THYAO analiz et')">THYAO analiz et</button>
+  <button class="q-btn" onclick="gonder('MAVI analiz et')">MAVI analiz et</button>
+  <button class="q-btn" onclick="gonder('AKBNK ve GARAN karşılaştır')">AKBNK vs GARAN</button>
+  <button class="q-btn" onclick="gonder('BIMAS, EREGL, THYAO portföy analizi')">Portföy analizi</button>
+  <button class="q-btn" onclick="gonder('En düşük F/K hangi hisse?')">Düşük F/K</button>
+</div>
+
+<div class="input-area">
+  <div class="input-row">
+    <input id="inp" type="text" placeholder="Hisse kodu veya soru yazın... (örn: THYAO analiz et)"
+      onkeydown="if(event.key==='Enter') gonder()">
+    <button class="send" id="sendBtn" onclick="gonder()">→</button>
+  </div>
+  <p class="disclaimer">⚠️ Bu platform yatırım tavsiyesi sunmaz. Tüm kararlar yatırımcıya aittir.</p>
+</div>
+
+<script>
+const API = "https://web-production-9272.up.railway.app";
+const oturumId = "oturum_" + Date.now();
+let yukleniyor = false;
+
+// API durumu kontrol et
+async function apiKontrol() {
+  try {
+    const r = await fetch(API + "/", { signal: AbortSignal.timeout(5000) });
+    const d = await r.json();
+    const s = document.getElementById("status");
+    s.textContent = "⬤ Canlı";
+    s.className = "status online";
+  } catch {
+    const s = document.getElementById("status");
+    s.textContent = "⬤ Bağlanamadı";
+    s.className = "status";
+  }
+}
+apiKontrol();
+
+function mesajEkle(rol, icerik, loading = false) {
+  const area = document.getElementById("messages");
+  const div = document.createElement("div");
+  div.className = "msg " + rol;
+
+  if (loading) {
+    div.innerHTML = `<div class="bubble">
+      <div class="agent-label">BIST AGENT</div>
+      <div class="dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>`;
+  } else if (rol === "agent") {
+    div.innerHTML = `<div class="bubble">
+      <div class="agent-label">BIST AGENT</div>
+      ${icerik}
+    </div>`;
+  } else {
+    div.innerHTML = `<div class="bubble">${icerik}</div>`;
+  }
+
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+  return div;
+}
+
+async function gonder(metin) {
+  if (yukleniyor) return;
+  const inp = document.getElementById("inp");
+  const soru = metin || inp.value.trim();
+  if (!soru) return;
+
+  inp.value = "";
+  mesajEkle("user", soru);
+  yukleniyor = true;
+  document.getElementById("sendBtn").disabled = true;
+
+  const loadingEl = mesajEkle("agent", "", true);
+
+  try {
+    const res = await fetch(API + "/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        soru: soru,
+        oturum_id: oturumId,
+        kullanici_id: "elif_buyume"
+      }),
+      signal: AbortSignal.timeout(60000)
+    });
+
+    const data = await res.json();
+    loadingEl.remove();
+    mesajEkle("agent", (data.yanit || "Yanıt alınamadı.").replace(/\n/g, "<br>"));
+
+  } catch (e) {
+    loadingEl.remove();
+    mesajEkle("agent", "⚠️ API'ye bağlanılamadı. Lütfen bekleyin ve tekrar deneyin.<br><small style='color:#4a5878'>" + e.message + "</small>");
+  }
+
+  yukleniyor = false;
+  document.getElementById("sendBtn").disabled = false;
+  inp.focus();
+}
+</script>
+</body>
+</html>
