@@ -28,10 +28,10 @@ from agent import TOOLS, execute_tool, SYSTEM_PROMPT, BISTAgent
 
 app = FastAPI(title="BIST Araştırma Agent API", version="1.0.0")
 
-# CORS — Next.js dev sunucusuna izin ver
+# CORS — GitHub Pages + local dev
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=["*"],  # Tüm originlere izin ver
     allow_methods=["*"],
     allow_headers=["*"],
 )
