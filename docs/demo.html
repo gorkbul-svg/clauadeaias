@@ -1,14 +1,10 @@
+bash
+cat /mnt/user-data/outputs/docs/demo_final.html | head -5
+grep "railway" /mnt/user-data/outputs/docs/demo_final.html | head -3
+Output
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Test</title></head>
-<body>
-<h1>Test</h1>
-<script>
-const API_URL = "https://web-production-9272.up.railway.app";
-fetch(API_URL + "/")
-  .then(r => r.json())
-  .then(d => document.body.innerHTML += "<p>✅ API bağlı: " + d.mesaj + "</p>")
-  .catch(e => document.body.innerHTML += "<p>❌ Hata: " + e + "</p>");
-</script>
-</body>
-</html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+const API_URL = window.RAILWAY_API_URL || "https://web-production-9272.up.railway.app";
