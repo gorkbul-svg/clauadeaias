@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIST Agent — Türkiye'nin İlk AI Destekli Borsa Karar Platformu</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #04070f;
+  --bg2:     #080d1a;
+  --bg3:     #0d1425;
+  --border:  #111d35;
+  --accent:  #00e5ff;
+  --accent2: #ff3d71;
+  --green:   #00ff88;
+  --yellow:  #ffd600;
+  --text:    #e8f0ff;
+  --muted:   #3a4f6e;
+  --card:    rgba(13,20,37,.8);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* ── Animated grid bg ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 48px;
+  background: rgba(4,7,15,.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+.nav-logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent), #1d62f0);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.nav-logo-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: .08em;
+  color: var(--text);
+}
+
+.nav-links { display: flex; align-items: center; gap: 32px; }
+.nav-links a {
+  font-size: 12px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+  text-decoration: none; transition: color .2s;
+}
+.nav-links a:hover { color: var(--accent); }
+
+.nav-cta {
+  background: var(--accent);
+  color: #04070f !important;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 700 !important;
+  transition: all .2s !important;
+  text-decoration: none;
+  font-size: 12px;
+}
+.nav-cta:hover { background: #fff !important; transform: translateY(-1px); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 120px 24px 80px;
+  position: relative; z-index: 1;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(0,229,255,.06);
+  border: 1px solid rgba(0,229,255,.2);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 11px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 32px;
+  animation: fadeDown .6s ease both;
+}
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s infinite;
+}
+
+.hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(64px, 10vw, 140px);
+  line-height: .92;
+  letter-spacing: .02em;
+  margin-bottom: 8px;
+  animation: fadeDown .7s .1s ease both;
+}
+
+.hero-title .hl-cyan  { color: var(--accent); }
+.hero-title .hl-red   { color: var(--accent2); }
+.hero-title .hl-green { color: var(--green); }
+
+.hero-subtitle {
+  font-size: clamp(15px, 2vw, 20px);
+  color: var(--muted);
+  max-width: 560px;
+  line-height: 1.6;
+  margin-bottom: 48px;
+  animation: fadeDown .7s .2s ease both;
+}
+
+.hero-subtitle strong { color: var(--text); }
+
+.hero-btns {
+  display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+  animation: fadeDown .7s .3s ease both;
+  margin-bottom: 64px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #04070f;
+  padding: 14px 36px;
+  border-radius: 8px;
+  font-size: 14px; font-weight: 800;
+  letter-spacing: .04em; text-transform: uppercase;
+  text-decoration: none;
+  border: none; cursor: pointer;
+  transition: all .2s;
+  font-family: 'Inter', sans-serif;
+}
+.btn-primary:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,229,255,.3); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  padding: 14px 36px;
+  border-radius: 8px;
+  font-size: 14px; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Live ticker */
+.hero-ticker {
+  display: flex; gap: 32px; flex-wrap: wrap; justify-content: center;
+  animation: fadeDown .7s .4s ease both;
+}
+
+.ticker-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 18px;
+  backdrop-filter: blur(8px);
+}
+.ticker-name { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; color: var(--muted); }
+.ticker-price { font-size: 15px; font-weight: 800; color: var(--text); }
+.ticker-change { font-size: 11px; font-weight: 700; }
+.ticker-change.up   { color: var(--green); }
+.ticker-change.down { color: var(--accent2); }
+
+/* ── KARAR DEMO ── */
+.karar-demo {
+  margin-top: 80px;
+  position: relative; z-index: 1;
+  animation: fadeDown .7s .5s ease both;
+}
+
+.karar-ekran {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 400px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+.karar-ekran::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+}
+
+.karar-ticker-label { font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px; }
+.karar-ticker-name { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 20px; }
+
+.karar-karar {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 72px; line-height: 1;
+  color: var(--green);
+  text-shadow: 0 0 40px rgba(0,255,136,.4);
+  margin-bottom: 8px;
+}
+
+.karar-skor { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+.karar-skor span { color: var(--green); font-weight: 800; }
+
+.karar-barlar { display: flex; flex-direction: column; gap: 8px; }
+.karar-bar-row { display: flex; align-items: center; gap: 10px; }
+.karar-bar-label { font-size: 10px; font-weight: 700; color: var(--muted); width: 70px; text-transform: uppercase; letter-spacing: .06em; }
+.karar-bar-bg { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.karar-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+.karar-bar-val { font-size: 10px; font-weight: 800; width: 28px; text-align: right; }
+
+/* ── NASIL ÇALIŞIR ── */
+section { position: relative; z-index: 1; }
+
+.section-tag {
+  display: inline-block;
+  font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 1; margin-bottom: 16px;
+}
+
+.section-sub {
+  font-size: 16px; color: var(--muted); max-width: 520px; line-height: 1.6;
+}
+
+/* Nasıl çalışır */
+#nasil { padding: 120px 48px; }
+
+.adimlar {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2px; margin-top: 64px;
+  border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+}
+
+.adim {
+  background: var(--bg2);
+  padding: 36px 28px;
+  position: relative;
+  transition: background .2s;
+}
+.adim:hover { background: var(--bg3); }
+.adim::before {
+  content: attr(data-no);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 80px; line-height: 1;
+  color: var(--border);
+  position: absolute; top: 16px; right: 16px;
+}
+.adim-ikon { font-size: 32px; margin-bottom: 16px; }
+.adim-baslik { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+.adim-aciklama { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ── ÖZELLİKLER ── */
+#ozellikler { padding: 120px 48px; background: var(--bg2); }
+
+.ozellik-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px; margin-top: 64px;
+}
+
+.ozellik-kart {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 28px;
+  transition: all .2s;
+  backdrop-filter: blur(8px);
+  position: relative; overflow: hidden;
+}
+.ozellik-kart:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+.ozellik-kart::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(0,229,255,.03), transparent);
+  opacity: 0; transition: opacity .2s;
+}
+.ozellik-kart:hover::after { opacity: 1; }
+
+.ozellik-ikon {
+  font-size: 28px; margin-bottom: 16px;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 52px; height: 52px;
+  background: rgba(0,229,255,.06);
+  border-radius: 12px;
+  border: 1px solid rgba(0,229,255,.12);
+}
+.ozellik-baslik { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+.ozellik-aciklama { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.ozellik-yeni {
+  display: inline-block; font-size: 9px; font-weight: 800;
+  background: var(--accent2); color: white;
+  padding: 2px 8px; border-radius: 4px; letter-spacing: .08em;
+  text-transform: uppercase; margin-left: 8px; vertical-align: middle;
+}
+
+/* ── KARŞILAŞTIRMA ── */
+#karsilastirma { padding: 120px 48px; }
+
+.tablo-wrap { overflow-x: auto; margin-top: 64px; }
+
+table {
+  width: 100%; border-collapse: collapse;
+  min-width: 600px;
+}
+
+thead th {
+  padding: 16px 20px; text-align: center;
+  font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  border-bottom: 2px solid var(--border);
+}
+thead th:first-child { text-align: left; }
+thead th.biz {
+  color: var(--accent);
+  background: rgba(0,229,255,.04);
+  border-bottom-color: var(--accent);
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+}
+tbody tr:hover { background: rgba(255,255,255,.02); }
+
+tbody td {
+  padding: 14px 20px; text-align: center;
+  font-size: 13px; color: var(--muted);
+}
+tbody td:first-child { text-align: left; color: var(--text); font-weight: 600; }
+tbody td.biz { background: rgba(0,229,255,.03); }
+
+.evet  { color: var(--green); font-size: 18px; }
+.hayir { color: var(--muted); font-size: 18px; opacity: .4; }
+.kismi { color: var(--yellow); font-size: 12px; font-weight: 700; }
+
+/* ── FİYATLANDIRMA ── */
+#fiyatlandirma { padding: 120px 48px; background: var(--bg2); }
+
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px; margin-top: 64px; max-width: 900px; margin-left: auto; margin-right: auto;
+}
+
+.plan-kart {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 36px 28px;
+  position: relative;
+  transition: all .2s;
+}
+.plan-kart:hover { transform: translateY(-4px); }
+.plan-kart.populer {
+  border-color: var(--accent);
+  background: rgba(0,229,255,.04);
+}
+.populer-badge {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  background: var(--accent); color: #04070f;
+  font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  padding: 4px 16px; border-radius: 20px;
+}
+
+.plan-isim { font-size: 13px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+.plan-fiyat { font-family: 'Bebas Neue', sans-serif; font-size: 56px; line-height: 1; color: var(--text); margin-bottom: 4px; }
+.plan-fiyat span { font-size: 20px; }
+.plan-periyot { font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+
+.plan-ozellikler { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+.plan-ozellikler li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px; color: var(--muted);
+}
+.plan-ozellikler li::before { content: '✓'; color: var(--green); font-weight: 800; flex-shrink: 0; }
+.plan-ozellikler li.dis { opacity: .35; }
+.plan-ozellikler li.dis::before { content: '✕'; color: var(--muted); }
+
+.plan-btn {
+  display: block; width: 100%; text-align: center;
+  padding: 12px; border-radius: 8px;
+  font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+  text-decoration: none; cursor: pointer; border: none;
+  font-family: 'Inter', sans-serif;
+  transition: all .2s;
+}
+.plan-btn-ghost {
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border);
+}
+.plan-btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.plan-btn-accent {
+  background: var(--accent); color: #04070f;
+}
+.plan-btn-accent:hover { background: #fff; }
+
+/* ── DEMO EKRANLAR ── */
+#demo { padding: 120px 48px; }
+
+.demo-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; margin-top: 64px;
+}
+
+.demo-kart {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden;
+  transition: all .2s;
+}
+.demo-kart:hover { border-color: var(--accent); transform: scale(1.01); }
+
+.demo-baslik {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--muted);
+  display: flex; align-items: center; gap: 8px;
+}
+
+.demo-icerik { padding: 20px; }
+
+/* Mini ısı haritası */
+.mini-isi { display: flex; flex-wrap: wrap; gap: 3px; }
+.mini-blok {
+  border-radius: 4px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 7px; font-weight: 800;
+  color: rgba(255,255,255,.9);
+  cursor: default;
+}
+
+/* Mini fırsat tarayıcı */
+.mini-firsat { display: flex; flex-direction: column; gap: 8px; }
+.mini-firsat-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg3); border-radius: 8px; padding: 10px 14px;
+  border: 1px solid var(--border);
+}
+.mini-skor {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 900; border: 2px solid;
+  flex-shrink: 0;
+}
+.mini-ticker { font-size: 13px; font-weight: 800; }
+.mini-rsi { font-size: 10px; color: var(--muted); }
+.mini-rozetler { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 2px; }
+.mini-rozet {
+  font-size: 7px; font-weight: 700; padding: 1px 5px;
+  border-radius: 3px; background: rgba(0,229,255,.08);
+  border: 1px solid rgba(0,229,255,.15); color: var(--accent);
+}
+
+/* Mini seviye */
+.mini-seviye { display: flex; flex-direction: column; gap: 6px; }
+.mini-sev-satir {
+  display: flex; align-items: center; gap: 8px;
+}
+.mini-sev-label { font-size: 9px; font-weight: 700; width: 60px; text-transform: uppercase; letter-spacing: .06em; }
+.mini-sev-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; position: relative; }
+.mini-sev-dot {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 8px; height: 8px; border-radius: 50%; margin-left: -4px;
+}
+.mini-sev-val { font-size: 10px; font-weight: 700; width: 44px; text-align: right; }
+
+/* ── CTA ── */
+#cta {
+  padding: 120px 48px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+#cta::before {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(0,229,255,.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cta-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(48px, 8vw, 96px);
+  line-height: 1; margin-bottom: 20px;
+}
+
+.cta-sub { font-size: 16px; color: var(--muted); margin-bottom: 40px; }
+
+/* ── FOOTER ── */
+footer {
+  padding: 32px 48px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; z-index: 1;
+}
+.footer-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px; letter-spacing: .08em; color: var(--muted);
+}
+.footer-yasal { font-size: 11px; color: var(--muted); max-width: 400px; line-height: 1.5; }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a { font-size: 11px; color: var(--muted); text-decoration: none; }
+.footer-links a:hover { color: var(--accent); }
+
+/* ── ANİMASYONLAR ── */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes scanline {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.float { animation: float 4s ease-in-out infinite; }
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  nav { padding: 14px 20px; }
+  .nav-links { display: none; }
+  #nasil, #ozellikler, #karsilastirma, #fiyatlandirma, #demo, #cta { padding: 80px 20px; }
+  .demo-grid { grid-template-columns: 1fr; }
+  footer { flex-direction: column; gap: 16px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-icon">📊</div>
+    <span class="nav-logo-text">BIST AGENT</span>
+  </a>
+  <div class="nav-links">
+    <a href="#nasil">Nasıl Çalışır</a>
+    <a href="#ozellikler">Özellikler</a>
+    <a href="#karsilastirma">Karşılaştırma</a>
+    <a href="#fiyatlandirma">Fiyatlandırma</a>
+    <a href="./demo.html" class="nav-cta">Ücretsiz Dene →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🇹🇷 Türkiye'nin İlk AI Borsa Karar Platformu</div>
+
+  <h1 class="hero-title">
+    <span class="hl-cyan">AL.</span><br>
+    <span class="hl-red">SAT.</span><br>
+    <span class="hl-green">KAZAN.</span>
+  </h1>
+
+  <p class="hero-subtitle">
+    Midas fiyat gösterir. Investing.com veri döker.<br>
+    <strong>BIST Agent karar verir.</strong><br>
+    RSI · MACD · ML · Topluluk — tek ekranda skor.
+  </p>
+
+  <div class="hero-btns">
+    <a href="./demo.html" class="btn-primary">🚀 Ücretsiz Dene</a>
+    <a href="#nasil" class="btn-ghost">Nasıl Çalışır?</a>
+  </div>
+
+  <!-- Live tickers -->
+  <div class="hero-ticker">
+    <div class="ticker-item float" style="animation-delay:0s">
+      <span class="ticker-name">THYAO</span>
+      <span class="ticker-price">312.40₺</span>
+      <span class="ticker-change up">▲ +2.8%</span>
+    </div>
+    <div class="ticker-item float" style="animation-delay:.3s">
+      <span class="ticker-name">GARAN</span>
+      <span class="ticker-price">98.75₺</span>
+      <span class="ticker-change up">▲ +1.4%</span>
+    </div>
+    <div class="ticker-item float" style="animation-delay:.6s">
+      <span class="ticker-name">EREGL</span>
+      <span class="ticker-price">44.18₺</span>
+      <span class="ticker-change down">▼ -0.9%</span>
+    </div>
+    <div class="ticker-item float" style="animation-delay:.9s">
+      <span class="ticker-name">ASELS</span>
+      <span class="ticker-price">156.20₺</span>
+      <span class="ticker-change up">▲ +3.2%</span>
+    </div>
+  </div>
+
+  <!-- Karar Demo -->
+  <div class="karar-demo float" style="animation-delay:.4s">
+    <div class="karar-ekran">
+      <div class="karar-ticker-label">Analiz ediliyor</div>
+      <div class="karar-ticker-name">THYAO — Türk Hava Yolları</div>
+      <div class="karar-karar">AL</div>
+      <div class="karar-skor">Genel Skor: <span>78</span> / 100</div>
+      <div class="karar-barlar">
+        <div class="karar-bar-row">
+          <span class="karar-bar-label" style="color:#0ea5e9">Teknik</span>
+          <div class="karar-bar-bg"><div class="karar-bar-fill" style="width:80%;background:#0ea5e9"></div></div>
+          <span class="karar-bar-val" style="color:#0ea5e9">80</span>
+        </div>
+        <div class="karar-bar-row">
+          <span class="karar-bar-label" style="color:#a78bfa">Temel</span>
+          <div class="karar-bar-bg"><div class="karar-bar-fill" style="width:65%;background:#a78bfa"></div></div>
+          <span class="karar-bar-val" style="color:#a78bfa">65</span>
+        </div>
+        <div class="karar-bar-row">
+          <span class="karar-bar-label" style="color:#00ff88">ML</span>
+          <div class="karar-bar-bg"><div class="karar-bar-fill" style="width:82%;background:#00ff88"></div></div>
+          <span class="karar-bar-val" style="color:#00ff88">82</span>
+        </div>
+        <div class="karar-bar-row">
+          <span class="karar-bar-label" style="color:#ffd600">Topluluk</span>
+          <div class="karar-bar-bg"><div class="karar-bar-fill" style="width:70%;background:#ffd600"></div></div>
+          <span class="karar-bar-val" style="color:#ffd600">70</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NASIL ÇALIŞIR -->
+<section id="nasil">
+  <div style="text-align:center;margin-bottom:0">
+    <div class="section-tag">Süreç</div>
+    <h2 class="section-title reveal">3 ADIMDA<br><span style="color:var(--accent)">KARAR VER</span></h2>
+    <p class="section-sub reveal" style="margin:0 auto">Manuel analiz saatler sürer. BIST Agent saniyeler içinde sonuç verir.</p>
+  </div>
+
+  <div class="adimlar reveal">
+    <div class="adim" data-no="01">
+      <div class="adim-ikon">🎯</div>
+      <div class="adim-baslik">Hisseyi Gir</div>
+      <div class="adim-aciklama">Ticker yaz ya da Fırsat Tarayıcı ile tüm BIST'i tarat. Dip'teki hisseleri sistem bulur.</div>
+    </div>
+    <div class="adim" data-no="02">
+      <div class="adim-ikon">🤖</div>
+      <div class="adim-baslik">AI Analiz Eder</div>
+      <div class="adim-aciklama">RSI, MACD, Bollinger, ML tahmini, topluluk sinyalleri — 4 bileşen tek skor altında.</div>
+    </div>
+    <div class="adim" data-no="03">
+      <div class="adim-ikon">⚡</div>
+      <div class="adim-baslik">Karar + Seviye</div>
+      <div class="adim-aciklama">AL / SAT / BEKLE kararı. Alım bölgesi, stop-loss, 3 hedef fiyat — anında.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ÖZELLİKLER -->
+<section id="ozellikler">
+  <div style="text-align:center">
+    <div class="section-tag">Platform</div>
+    <h2 class="section-title reveal">RAKİPTE YOK,<br><span style="color:var(--accent2)">BİZDE VAR</span></h2>
+  </div>
+
+  <div class="ozellik-grid">
+    <div class="ozellik-kart reveal">
+      <div class="ozellik-ikon">🎯</div>
+      <div class="ozellik-baslik">AL/SAT/BEKLE Karar Paneli <span class="ozellik-yeni">YENİ</span></div>
+      <div class="ozellik-aciklama">4 bileşenli skor: Teknik %35, Temel %30, ML %25, Topluluk %10. Türkiye'de ilk.</div>
+    </div>
+    <div class="ozellik-kart reveal">
+      <div class="ozellik-ikon">🚀</div>
+      <div class="ozellik-baslik">Fırsat Tarayıcı <span class="ozellik-yeni">YENİ</span></div>
+      <div class="ozellik-aciklama">Tüm BIST'i 6 sinyal ile tarar. RSI dip dönüş, hacim patlaması, MACD kesişimi — dip hisseleri otomatik bulur.</div>
+    </div>
+    <div class="ozellik-kart reveal">
+      <div class="ozellik-ikon">📐</div>
+      <div class="ozellik-baslik">Seviye Hesaplayıcı <span class="ozellik-yeni">YENİ</span></div>
+      <div class="ozellik-aciklama">Alım bölgesi, stop-loss, 3 hedef fiyat. Fibonacci + Pivot + ATR tabanlı. Manuel çizime son.</div>
+    </div>
+    <div class="ozellik-kart reveal">
+      <div class="ozellik-ikon">🔥</div>
+      <div class="ozellik-baslik">BIST Isı Haritası</div>
+      <div class="ozellik-aciklama">Tüm BIST tek ekranda. Sektör gruplu, piyasa değeri = blok boyutu. Piyasayı 1 saniyede oku.</div>
+    </div>
+    <div class="ozellik-kart reveal">
+      <div class="ozellik-ikon">🤖</div>
+      <div class="ozellik-baslik">Ensemble ML Tahmini</div>
+      <div class="ozellik-aciklama">LSTM + Prophet + ARIMA birlikte çalışır. 7 günlük fiyat tahmini, güven aralığı, model karşılaştırma.</div>
+    </div>
+    <div class="ozellik-kart reveal">
+      <div class="ozellik-ikon">👥</div>
+      <div class="ozellik-baslik">Analist Topluluğu</div>
+      <div class="ozellik-aciklama">Analizini paylaş, başkalarını takip et. Topluluk sinyali karar skoruna dahil olur.</div>
+    </div>
+  </div>
+</section>
+
+<!-- KARŞILAŞTIRMA -->
+<section id="karsilastirma">
+  <div style="text-align:center">
+    <div class="section-tag">Karşılaştırma</div>
+    <h2 class="section-title reveal">NEDEN<br><span style="color:var(--green)">BIST AGENT?</span></h2>
+  </div>
+
+  <div class="tablo-wrap reveal">
+    <table>
+      <thead>
+        <tr>
+          <th>Özellik</th>
+          <th class="biz">BIST Agent</th>
+          <th>Midas</th>
+          <th>Investing.com</th>
+          <th>Matriks</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AI Karar Paneli (AL/SAT/BEKLE)</td>
+          <td class="biz"><span class="evet">✓</span></td>
+          <td><span class="hayir">✕</span></td>
+          <td><span class="hayir">✕</span></td>
+          <td><span class="hayir">✕</span></td>
+        </tr>
+        <tr>
+          <td>Fırsat Tarayıcı (Dip Hisse)</td>
+          <td class="biz"><span class="evet">✓</span></td>
+          <td><span class="hayir">✕</span></td>
+          <td><span class="hayir">✕</span></td>
+          <td><span class="kismi">Kısmi</span></td>
+        </tr>
+        <tr>
+          <td>Otomatik Seviye Hesaplama</td>
+          <td class="biz"><span class="evet">✓</span></td>
+          <td><span class="hayir">✕</span></td>
+          <td><span class="hayir">✕</span></td>
+          <td><span class="hayir">✕</span></td>
+        </tr>
+        <tr>
+          <td>ML Fiyat Tahmini (7 Gün)</td>
+          <td class="biz"><span class="evet">✓</span></td>
+          <td><span class="hayir">✕</span></td>
+          <td><span class="hayir">✕</span></td>
+          <td><span class="hayir">✕</span></td>
+        </tr>
+        <tr>
+          <td>BIST Isı Haritası</td>
+          <td class="biz"><span class="evet">✓</span></td>
+          <td><span class="hayir">✕</span></td>
+          <td><span class="kismi">Kısmi</span></td>
+          <td><span class="evet">✓</span></td>
+        </tr>
+        <tr>
+          <td>Analist Topluluğu</td>
+          <td class="biz"><span class="evet">✓</span></td>
+          <td><span class="hayir">✕</span></td>
+          <td><span class="kismi">Kısmi</span></td>
+          <td><span class="hayir">✕</span></td>
+        </tr>
+        <tr>
+          <td>KAP Haberleri Entegrasyonu</td>
+          <td class="biz"><span class="evet">✓</span></td>
+          <td><span class="hayir">✕</span></td>
+          <td><span class="hayir">✕</span></td>
+          <td><span class="evet">✓</span></td>
+        </tr>
+        <tr>
+          <td>Ücretsiz Temel Kullanım</td>
+          <td class="biz"><span class="evet">✓</span></td>
+          <td><span class="evet">✓</span></td>
+          <td><span class="evet">✓</span></td>
+          <td><span class="hayir">✕</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section id="demo">
+  <div style="text-align:center">
+    <div class="section-tag">Platform Önizleme</div>
+    <h2 class="section-title reveal">CANLI<br><span style="color:var(--accent)">DEMO</span></h2>
+  </div>
+
+  <div class="demo-grid reveal">
+
+    <!-- Isı Haritası Mini -->
+    <div class="demo-kart">
+      <div class="demo-baslik">🔥 BIST Isı Haritası</div>
+      <div class="demo-icerik">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Bankacılık</div>
+        <div class="mini-isi">
+          <div class="mini-blok" style="background:rgba(0,255,136,.7);width:72px;height:56px">GARAN<br>+2.4%</div>
+          <div class="mini-blok" style="background:rgba(0,255,136,.5);width:60px;height:56px">AKBNK<br>+1.8%</div>
+          <div class="mini-blok" style="background:rgba(239,68,68,.5);width:56px;height:56px">ISCTR<br>-1.2%</div>
+          <div class="mini-blok" style="background:rgba(0,255,136,.3);width:48px;height:56px">YKBNK<br>+0.6%</div>
+          <div class="mini-blok" style="background:rgba(239,68,68,.3);width:44px;height:56px">HALKB<br>-0.4%</div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin:10px 0;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Havacılık</div>
+        <div class="mini-isi">
+          <div class="mini-blok" style="background:rgba(0,255,136,.9);width:80px;height:52px">THYAO<br>+3.2%</div>
+          <div class="mini-blok" style="background:rgba(0,255,136,.4);width:52px;height:52px">PGSUS<br>+1.1%</div>
+          <div class="mini-blok" style="background:rgba(239,68,68,.6);width:44px;height:52px">TAVHL<br>-1.8%</div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin:10px 0;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Sanayi</div>
+        <div class="mini-isi">
+          <div class="mini-blok" style="background:rgba(239,68,68,.7);width:64px;height:48px">EREGL<br>-2.6%</div>
+          <div class="mini-blok" style="background:rgba(0,255,136,.6);width:56px;height:48px">ASELS<br>+2.0%</div>
+          <div class="mini-blok" style="background:rgba(239,68,68,.3);width:48px;height:48px">FROTO<br>-0.8%</div>
+          <div class="mini-blok" style="background:rgba(0,255,136,.2);width:40px;height:48px">TOASO<br>+0.3%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fırsat Tarayıcı Mini -->
+    <div class="demo-kart">
+      <div class="demo-baslik">🚀 Fırsat Tarayıcı — Bugünkü Dipçiler</div>
+      <div class="demo-icerik">
+        <div class="mini-firsat">
+          <div class="mini-firsat-item">
+            <div class="mini-skor" style="border-color:var(--green);color:var(--green)">6</div>
+            <div style="flex:1">
+              <div class="mini-ticker">KRDMD <span style="color:var(--green);font-size:11px">▲ +1.2%</span></div>
+              <div class="mini-rsi">RSI: 28 · 44.60₺</div>
+              <div class="mini-rozetler">
+                <span class="mini-rozet">📉 RSI Dip</span>
+                <span class="mini-rozet">📊 Hacim 3.2x</span>
+                <span class="mini-rozet">🎯 Bollinger</span>
+                <span class="mini-rozet">⚡ MACD</span>
+              </div>
+            </div>
+          </div>
+          <div class="mini-firsat-item">
+            <div class="mini-skor" style="border-color:#ffd600;color:#ffd600">5</div>
+            <div style="flex:1">
+              <div class="mini-ticker">CEMTS <span style="color:var(--accent2);font-size:11px">▼ -0.4%</span></div>
+              <div class="mini-rsi">RSI: 31 · 22.14₺</div>
+              <div class="mini-rozetler">
+                <span class="mini-rozet">📉 RSI Dip</span>
+                <span class="mini-rozet">🛡️ Destek</span>
+                <span class="mini-rozet">🎯 Bollinger</span>
+                <span class="mini-rozet">🌍 Yabancı</span>
+              </div>
+            </div>
+          </div>
+          <div class="mini-firsat-item">
+            <div class="mini-skor" style="border-color:#0ea5e9;color:#0ea5e9">4</div>
+            <div style="flex:1">
+              <div class="mini-ticker">ZOREN <span style="color:var(--green);font-size:11px">▲ +0.8%</span></div>
+              <div class="mini-rsi">RSI: 33 · 18.76₺</div>
+              <div class="mini-rozetler">
+                <span class="mini-rozet">📉 RSI Dip</span>
+                <span class="mini-rozet">📊 Hacim 2.1x</span>
+                <span class="mini-rozet">⚡ MACD</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seviye Hesaplayıcı Mini -->
+    <div class="demo-kart">
+      <div class="demo-baslik">📐 Seviye Hesaplayıcı — THYAO</div>
+      <div class="demo-icerik">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <div style="font-size:18px;font-weight:800">THYAO</div>
+            <div style="font-size:12px;color:var(--muted)">312.40₺ güncel</div>
+          </div>
+          <div style="background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.2);border-radius:8px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--green)">R/R Mükemmel</div>
+        </div>
+        <div class="mini-seviye">
+          <div class="mini-sev-satir">
+            <span class="mini-sev-label" style="color:var(--green)">🎯 Hedef 3</span>
+            <div class="mini-sev-bar"><div class="mini-sev-dot" style="left:92%;background:var(--green)"></div></div>
+            <span class="mini-sev-val" style="color:var(--green)">368₺</span>
+          </div>
+          <div class="mini-sev-satir">
+            <span class="mini-sev-label" style="color:var(--green)">🎯 Hedef 2</span>
+            <div class="mini-sev-bar"><div class="mini-sev-dot" style="left:78%;background:var(--green)"></div></div>
+            <span class="mini-sev-val" style="color:var(--green)">345₺</span>
+          </div>
+          <div class="mini-sev-satir">
+            <span class="mini-sev-label" style="color:var(--green)">🎯 Hedef 1</span>
+            <div class="mini-sev-bar"><div class="mini-sev-dot" style="left:65%;background:var(--green)"></div></div>
+            <span class="mini-sev-val" style="color:var(--green)">328₺</span>
+          </div>
+          <div class="mini-sev-satir">
+            <span class="mini-sev-label" style="color:#fff">◆ Güncel</span>
+            <div class="mini-sev-bar" style="background:rgba(255,255,255,.1)"><div class="mini-sev-dot" style="left:55%;background:#fff"></div></div>
+            <span class="mini-sev-val" style="color:#fff">312₺</span>
+          </div>
+          <div class="mini-sev-satir">
+            <span class="mini-sev-label" style="color:#0ea5e9">🟦 Alım ↑</span>
+            <div class="mini-sev-bar"><div class="mini-sev-dot" style="left:44%;background:#0ea5e9"></div></div>
+            <span class="mini-sev-val" style="color:#0ea5e9">308₺</span>
+          </div>
+          <div class="mini-sev-satir">
+            <span class="mini-sev-label" style="color:#0ea5e9">🟦 Alım ↓</span>
+            <div class="mini-sev-bar"><div class="mini-sev-dot" style="left:36%;background:#0ea5e9"></div></div>
+            <span class="mini-sev-val" style="color:#0ea5e9">304₺</span>
+          </div>
+          <div class="mini-sev-satir">
+            <span class="mini-sev-label" style="color:var(--accent2)">✕ Stop</span>
+            <div class="mini-sev-bar"><div class="mini-sev-dot" style="left:18%;background:var(--accent2)"></div></div>
+            <span class="mini-sev-val" style="color:var(--accent2)">296₺</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <div style="flex:1;background:var(--bg3);border-radius:6px;padding:8px;text-align:center">
+            <div style="font-size:9px;color:var(--muted)">Risk</div>
+            <div style="font-size:13px;font-weight:800;color:var(--accent2)">-3.8%</div>
+          </div>
+          <div style="flex:1;background:var(--bg3);border-radius:6px;padding:8px;text-align:center">
+            <div style="font-size:9px;color:var(--muted)">Hedef 2</div>
+            <div style="font-size:13px;font-weight:800;color:var(--green)">+10.8%</div>
+          </div>
+          <div style="flex:1;background:var(--bg3);border-radius:6px;padding:8px;text-align:center">
+            <div style="font-size:9px;color:var(--muted)">R/R</div>
+            <div style="font-size:13px;font-weight:800;color:var(--yellow)">2.8x</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ML Tahmin Mini -->
+    <div class="demo-kart">
+      <div class="demo-baslik">🤖 ML Tahmin — GARAN (7 Gün)</div>
+      <div class="demo-icerik">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <div style="font-size:18px;font-weight:800;color:var(--green)">108.40₺</div>
+            <div style="font-size:11px;color:var(--muted)">7 günlük hedef · <span style="color:var(--green)">▲ +9.8%</span></div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:var(--muted)">Model Güveni</div>
+            <div style="font-size:20px;font-weight:900;color:var(--yellow)">%73</div>
+          </div>
+        </div>
+        <!-- Basit grafik -->
+        <svg viewBox="0 0 280 100" style="width:100%;height:auto">
+          <defs>
+            <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="rgba(0,255,136,.3)"/>
+              <stop offset="100%" stop-color="rgba(0,255,136,0)"/>
+            </linearGradient>
+          </defs>
+          <!-- Güven aralığı -->
+          <path d="M0,70 L40,68 L80,65 L120,60 L160,52 L200,42 L240,30 L280,20 L280,35 L240,46 L200,56 L160,65 L120,72 L80,76 L40,78 L0,80 Z" fill="rgba(0,229,255,.08)"/>
+          <!-- Geçmiş çizgi -->
+          <polyline points="0,70 40,68 80,65 120,60 160,52" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+          <!-- Tahmin çizgi -->
+          <polyline points="160,52 200,42 240,30 280,20" fill="none" stroke="var(--green)" stroke-width="2" stroke-dasharray="4,3"/>
+          <!-- Alan dolgu -->
+          <path d="M0,70 L40,68 L80,65 L120,60 L160,52 L200,42 L240,30 L280,20 L280,100 L0,100 Z" fill="url(#fillGrad)"/>
+          <!-- Şu an noktası -->
+          <circle cx="160" cy="52" r="4" fill="white"/>
+          <!-- Bölüm çizgisi -->
+          <line x1="160" y1="10" x2="160" y2="90" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="165" y="18" font-size="7" fill="rgba(255,255,255,.4)" font-family="Inter,sans-serif">TAHMİN →</text>
+        </svg>
+        <div style="display:flex;gap:6px;margin-top:10px">
+          <div style="flex:1;display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)">
+            <div style="width:16px;height:2px;background:rgba(255,255,255,.4)"></div> Gerçek
+          </div>
+          <div style="flex:1;display:flex;align-items:center;gap:4px;font-size:10px;color:var(--green)">
+            <div style="width:16px;height:2px;background:var(--green)"></div> Tahmin
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--muted)">
+            LSTM+Prophet+ARIMA
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FİYATLANDIRMA -->
+<section id="fiyatlandirma">
+  <div style="text-align:center">
+    <div class="section-tag">Fiyatlandırma</div>
+    <h2 class="section-title reveal">BAŞLA,<br><span style="color:var(--yellow)">SONRA KAZAN</span></h2>
+    <p class="section-sub reveal" style="margin:0 auto 0">Temel özellikler sonsuza kadar ücretsiz.</p>
+  </div>
+
+  <div class="plan-grid">
+
+    <div class="plan-kart reveal">
+      <div class="plan-isim">Ücretsiz</div>
+      <div class="plan-fiyat"><span>₺</span>0</div>
+      <div class="plan-periyot">Sonsuza kadar ücretsiz</div>
+      <ul class="plan-ozellikler">
+        <li>5 AI analiz / ay</li>
+        <li>Watchlist (10 hisse)</li>
+        <li>BIST Isı Haritası</li>
+        <li>KAP & Haber takibi</li>
+        <li>Topluluk feed'i</li>
+        <li class="dis">Fırsat Tarayıcı</li>
+        <li class="dis">Seviye Hesaplayıcı</li>
+        <li class="dis">ML Tahmin</li>
+      </ul>
+      <a href="./demo.html" class="plan-btn plan-btn-ghost">Ücretsiz Başla</a>
+    </div>
+
+    <div class="plan-kart populer reveal">
+      <div class="populer-badge">⭐ EN POPÜLER</div>
+      <div class="plan-isim">Pro Trader</div>
+      <div class="plan-fiyat"><span>₺</span>299</div>
+      <div class="plan-periyot">/ ay · KDV dahil</div>
+      <ul class="plan-ozellikler">
+        <li>Sınırsız AI analiz</li>
+        <li>Watchlist (sınırsız)</li>
+        <li>Fırsat Tarayıcı — tüm BIST</li>
+        <li>Seviye Hesaplayıcı</li>
+        <li>ML Tahmin (7 gün)</li>
+        <li>AL/SAT/BEKLE Karar Paneli</li>
+        <li>Haftalık e-posta raporu</li>
+        <li>Öncelikli destek</li>
+      </ul>
+      <a href="./demo.html" class="plan-btn plan-btn-accent">Şimdi Başla →</a>
+    </div>
+
+    <div class="plan-kart reveal">
+      <div class="plan-isim">Kurumsal</div>
+      <div class="plan-fiyat" style="font-size:40px">Teklif Al</div>
+      <div class="plan-periyot">Ekip & API erişimi</div>
+      <ul class="plan-ozellikler">
+        <li>Pro özelliklerin tamamı</li>
+        <li>API erişimi (10K istek/gün)</li>
+        <li>Özel alarm & raporlama</li>
+        <li>Ekip hesabı (5+ kullanıcı)</li>
+        <li>Özel entegrasyon desteği</li>
+        <li>SLA garantisi</li>
+      </ul>
+      <a href="/cdn-cgi/l/email-protection#6f060109002f0d061c1b0e080a011b410c0002" class="plan-btn plan-btn-ghost">İletişime Geç</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="section-tag">Başla</div>
+  <h2 class="cta-title reveal">
+    BEKLEMEYİ<br>
+    <span style="color:var(--accent)">BIRAKIN.</span>
+  </h2>
+  <p class="cta-sub reveal">Midas'ta olmayanlar burada. Saniyeler içinde başla.</p>
+  <a href="./demo.html" class="btn-primary reveal" style="font-size:16px;padding:18px 48px">
+    🚀 Ücretsiz Dene — Hemen Başla
+  </a>
+  <p style="margin-top:20px;font-size:11px;color:var(--muted)">Kredi kartı gerekmez · Google ile 10 saniyede giriş</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">BIST AGENT</div>
+  <div class="footer-yasal">⚠️ Bu platform yatırım tavsiyesi sunmaz. Tüm analizler bilgilendirme amaçlıdır. Yatırım kararları tamamen yatırımcıya aittir.</div>
+  <div class="footer-links">
+    <a href="#">Gizlilik</a>
+    <a href="#">Kullanım Şartları</a>
+    <a href="/cdn-cgi/l/email-protection#ed84838b82ad8f849e998c8a888399c38e8280">İletişim</a>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Ticker animasyonu — sayıları hafifçe değiştir
+const tickerFiyatlar = [
+  { el: 0, base: 312.40, volatilite: 0.8 },
+  { el: 1, base: 98.75,  volatilite: 0.4 },
+  { el: 2, base: 44.18,  volatilite: 0.3 },
+  { el: 3, base: 156.20, volatilite: 0.6 },
+];
+
+setInterval(() => {
+  document.querySelectorAll('.ticker-price').forEach((el, i) => {
+    const t = tickerFiyatlar[i];
+    if (!t) return;
+    const delta = (Math.random() - 0.5) * t.volatilite;
+    t.base += delta;
+    el.textContent = t.base.toFixed(2) + '₺';
+  });
+}, 2000);
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
