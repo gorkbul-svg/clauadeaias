@@ -1,0 +1,48 @@
+{
+  "name": "BIST Agent — AI Borsa Analizi",
+  "short_name": "BIST Agent",
+  "description": "Türkiye'nin ilk AI destekli borsa karar platformu",
+  "start_url": "./demo.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#04070f",
+  "theme_color": "#00e5ff",
+  "categories": ["finance", "utilities"],
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230d1220'/><text y='130' x='20' font-size='130'>📊</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230d1220'/><text y='360' x='40' font-size='360'>📊</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Karar Paneli",
+      "short_name": "Karar",
+      "url": "./demo.html#karar",
+      "description": "AL/SAT/BEKLE kararı al"
+    },
+    {
+      "name": "Fırsat Tarayıcı",
+      "short_name": "Tarayıcı",
+      "url": "./demo.html#tarayici",
+      "description": "Dip hisseleri bul"
+    },
+    {
+      "name": "Isı Haritası",
+      "short_name": "Isı Haritası",
+      "url": "./demo.html#isiharita",
+      "description": "BIST piyasa görünümü"
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
