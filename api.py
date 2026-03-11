@@ -199,6 +199,7 @@ from auth import google_auth_url, google_callback, jwt_dogrula
 # İzin verilen email adresleri — buraya ekle/çıkar
 IZIN_VERILEN_EMAILLER = {
     # Örnek: "ornek@gmail.com",
+    "gorkbul@gmail.com",
 }
 
 # True → whitelist aktif, False → herkese açık
