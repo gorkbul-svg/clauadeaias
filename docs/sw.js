@@ -1,4 +1,4 @@
-const CACHE_ADI   = 'bist-agent-v1';
+const CACHE_ADI   = 'bist-agent-v3';
 const CACHE_STATIK = [
   './demo.html',
   './index.html',
@@ -35,18 +35,19 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
-  // API isteklerini cache'leme — her zaman canlı ver
-  if (url.hostname.includes('railway.app') ||
-      url.hostname.includes('yahoo') ||
-      url.pathname.includes('/api/')) {
-    e.respondWith(
-      fetch(e.request).catch(() => {
-        return new Response(
-          JSON.stringify({ hata: 'İnternet bağlantısı yok', offline: true }),
-          { headers: { 'Content-Type': 'application/json' } }
-        );
-      })
-    );
+  // API isteklerini HİÇBİR ZAMAN cache'leme — her zaman network'ten al
+  if (
+    url.hostname.includes('railway.app') ||
+    url.hostname.includes('yahoo') ||
+    url.hostname.includes('anthropic') ||
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/bist/') ||
+    url.pathname.startsWith('/stock/') ||
+    url.pathname.startsWith('/auth/') ||
+    url.pathname.startsWith('/job/') ||
+    url.pathname.startsWith('/chat')
+  ) {
+    // Cache'e dokunma, direkt network
     return;
   }
 
